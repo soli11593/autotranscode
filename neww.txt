@@ -1,11 +1,11 @@
 #!/bin/bash
-linux_dir=/home/soli/media/trfiles/
-windows_ip="192.168.29.3"
-win_user="shour"
-windows_dest=/mnt/c/Users/shour/videos/transcode/
-linux_out=/home/soli/media/transcoded-files/
-ssh_pass="20qazplm"
-encoded_dir=/mnt/c/Users/shour/videos/transcodeout/
+linux_dir=(you directory path in the server where raw videos are there)
+windows_ip=(your machine ip)
+win_user=(your ssh windows wsl username)
+windows_dest=(windows folder path where the copied raw videos are stored )
+linux_out=(path where your transcoded videos will be recieved in server)
+ssh_pass=(your wsl ssh password)
+encoded_dir=(directory in your windows where transcoded files are stored)
 echo "Transferring files to Windows"
 sshpass -p "$ssh_pass" rsync -av -e "ssh" "$linux_dir" "$win_user@$wi>echo "Starting ffmpeg transcoding in Windows..."
 sshpass -p "$ssh_pass" ssh -T "$win_user@$windows_ip" <<EOF
@@ -18,13 +18,16 @@ sshpass -p "$ssh_pass" ssh -T "$win_user@$windows_ip" <<EOF
 
         ffmpeg -y -hwaccel cuda -i "\$file" \
             -nostdin -map 0:v \
-            -map 0:a:m:language:jpn? -map 0:a:0    \
-            -map 0:s:m:language:eng?  \
-            -map_chapters 0 \
-             -c:v hevc_nvenc -preset slow -cq 27 \
-             -c:a aac  \
-             -c:s mov_text \
-            -movflags +faststart "\$output_file"
+    -map 0:a:m:language:jpn? \
+    -map 0:s:m:language:eng? \
+    -map_chapters 0 \
+    -vf "scale='min(iw,1920)':-2" \
+    -c:v hevc_nvenc -preset slow -rc vbr_hq \
+    -b:v 2.5M -maxrate 3M -bufsize 3M \
+    -rc-lookahead 32 -spatial-aq 1 -aq-strength 8 -tune hq \
+    -c:a copy \
+    -c:s mov_text \
+    -movflags +faststart "\$output_file"
 
         echo "Finished: \$output_file"
     done
@@ -44,4 +47,5 @@ echo "Cleaning up Windows directory..."
 echo "Cleaning $encoded_dir ..."
 sshpass -p "$ssh_pass" ssh "$win_user@$windows_ip" "if [ -d \"$encode>
 echo "Cleaning $windows_dest ..."
+
 sshpass -p "$ssh_pass" ssh "$win_user@$windows_ip" "if [ -d \"$window>echo "Transcoding completed"
