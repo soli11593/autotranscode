@@ -1,7 +1,9 @@
 This is a transcoding script wihich will run in your server containing media which needs to be transcoded named (linux dir).
-
+---
 It willl take the files and send them to your powerful machine like your pc or other server (mine is windows laptop so the directory scheme would be different ) if you are using windows (windows wsl should run).
-
+---
+read first newww.txt
+---
 # 🎬 Automated Video Transcoding System
 
 This project automates the video transcoding process between a **Linux server** and a **Windows PC** vai wsl using **FFmpeg** with **GPU acceleration (CUDA/NVENC)**.  
