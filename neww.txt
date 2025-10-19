@@ -1,0 +1,47 @@
+#!/bin/bash
+linux_dir=/home/soli/media/trfiles/
+windows_ip="192.168.29.3"
+win_user="shour"
+windows_dest=/mnt/c/Users/shour/videos/transcode/
+linux_out=/home/soli/media/transcoded-files/
+ssh_pass="20qazplm"
+encoded_dir=/mnt/c/Users/shour/videos/transcodeout/
+echo "Transferring files to Windows"
+sshpass -p "$ssh_pass" rsync -av -e "ssh" "$linux_dir" "$win_user@$wi>echo "Starting ffmpeg transcoding in Windows..."
+sshpass -p "$ssh_pass" ssh -T "$win_user@$windows_ip" <<EOF
+    find "${windows_dest}" -mindepth 1 -type f -name "*.mkv" -print0 >
+        filename=\$(basename "\$file")
+        echo "Processing: \$filename"
+
+        output_file="${encoded_dir}/\${filename%.*}_transcoded.mp4"
+        # Check if the file has English subtitles
+
+        ffmpeg -y -hwaccel cuda -i "\$file" \
+            -nostdin -map 0:v \
+            -map 0:a:m:language:jpn? -map 0:a:0    \
+            -map 0:s:m:language:eng?  \
+            -map_chapters 0 \
+             -c:v hevc_nvenc -preset slow -cq 27 \
+             -c:a aac  \
+             -c:s mov_text \
+            -movflags +faststart "\$output_file"
+
+        echo "Finished: \$output_file"
+    done
+EOF
+##echo "Waiting for transcoded files..."
+
+#w hile true; do
+  # if sshpass -p "$ssh_pass" ssh "$win_user@$windows_ip" "[ -n \"\$(>   #     break
+    #fi
+    #sleep 10                                                         # done
+
+
+echo "Transferring transcoded files back to Linux..."
+sshpass -p "$ssh_pass" rsync -av -e "ssh" "$win_user@$windows_ip:$enc>
+
+echo "Cleaning up Windows directory..."
+echo "Cleaning $encoded_dir ..."
+sshpass -p "$ssh_pass" ssh "$win_user@$windows_ip" "if [ -d \"$encode>
+echo "Cleaning $windows_dest ..."
+sshpass -p "$ssh_pass" ssh "$win_user@$windows_ip" "if [ -d \"$window>echo "Transcoding completed"
